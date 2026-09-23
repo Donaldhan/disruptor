@@ -1,4 +1,4 @@
-package com.lmax.disruptor.examples;
+package com.lmax.disruptor.examples.learn;
 
 import com.lmax.disruptor.EventFactory;
 import com.lmax.disruptor.EventHandler;
