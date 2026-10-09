@@ -105,7 +105,7 @@ public final class SingleProducerSequencer extends SingleProducerSequencerFields
             {
                 cursor.setVolatile(nextValue);  // StoreLoad fence
             }
-
+            //所有消费者，消费的最小序列号
             long minSequence = Util.getMinimumSequence(gatingSequences, nextValue);
             this.cachedValue = minSequence;
 
@@ -146,6 +146,7 @@ public final class SingleProducerSequencer extends SingleProducerSequencerFields
         long wrapPoint = nextSequence - bufferSize;
         long cachedGatingSequence = this.cachedValue;
 
+        //申请的序列号超限，会覆盖当前未消费的数据，需要等待数据被消费完
         if (wrapPoint > cachedGatingSequence || cachedGatingSequence > nextValue)
         {
             cursor.setVolatile(nextValue);  // StoreLoad fence
