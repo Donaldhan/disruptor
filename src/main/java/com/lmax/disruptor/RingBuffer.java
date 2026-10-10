@@ -34,9 +34,14 @@ abstract class RingBufferFields<E> extends RingBufferPad
 {
     private static final int BUFFER_PAD = 32;
 
+    //索引掩码
     private final long indexMask;
+    //事件对象数组
+    //事件对象
     private final E[] entries;
+    //缓冲区大小
     protected final int bufferSize;
+    //序号器
     protected final Sequencer sequencer;
 
     @SuppressWarnings("unchecked")
@@ -58,8 +63,14 @@ abstract class RingBufferFields<E> extends RingBufferPad
 
         this.indexMask = bufferSize - 1;
         this.entries = (E[]) new Object[bufferSize + 2 * BUFFER_PAD];
+        //填充事件对象
         fill(eventFactory);
     }
+
+    /**
+     * Fill the ring buffer with the initial values
+     * @param eventFactory
+     */
 
     private void fill(final EventFactory<E> eventFactory)
     {
@@ -69,6 +80,11 @@ abstract class RingBufferFields<E> extends RingBufferPad
         }
     }
 
+    /**
+     * Get the event for a given sequence in the RingBuffer.
+     * @param sequence
+     * @return
+     */
     protected final E elementAt(final long sequence)
     {
         return entries[BUFFER_PAD + (int) (sequence & indexMask)];

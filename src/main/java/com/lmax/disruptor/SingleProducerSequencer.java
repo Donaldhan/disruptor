@@ -63,6 +63,8 @@ abstract class SingleProducerSequencerFields extends SingleProducerSequencerPad
 
 public final class SingleProducerSequencer extends SingleProducerSequencerFields
 {
+    // SingleProducerSequencer 负责单生产者场景下的序列号分配、RingBuffer 容量管理和数据发布；
+    // 大量 byte 类型的填充字段则是为了改善对象内存布局，尽可能减少 CPU 缓存伪共享带来的性能损耗。
     protected byte
         p10, p11, p12, p13, p14, p15, p16, p17,
         p20, p21, p22, p23, p24, p25, p26, p27,
@@ -223,7 +225,9 @@ public final class SingleProducerSequencer extends SingleProducerSequencerFields
     @Override
     public void publish(final long sequence)
     {
+        //更新消费者可读的序列号
         cursor.set(sequence);
+        //通知等待的消费者
         waitStrategy.signalAllWhenBlocking();
     }
 

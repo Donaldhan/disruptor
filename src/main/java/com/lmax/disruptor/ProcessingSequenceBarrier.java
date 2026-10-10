@@ -51,15 +51,17 @@ final class ProcessingSequenceBarrier implements SequenceBarrier
     public long waitFor(final long sequence)
         throws AlertException, InterruptedException, TimeoutException
     {
+        // Check if the spinner should be used
         checkAlert();
-
+        // Wait for the sequence to be available
         long availableSequence = waitStrategy.waitFor(sequence, cursorSequence, dependentSequence, this);
-
+        // If the available sequence is less than what is required then return it
         if (availableSequence < sequence)
         {
             return availableSequence;
         }
 
+        // Otherwise calculate the highest published sequence
         return sequencer.getHighestPublishedSequence(sequence, availableSequence);
     }
 
@@ -78,6 +80,7 @@ final class ProcessingSequenceBarrier implements SequenceBarrier
     @Override
     public void alert()
     {
+        // visible to the other threads so that they can check if alerted
         alerted = true;
         waitStrategy.signalAllWhenBlocking();
     }
