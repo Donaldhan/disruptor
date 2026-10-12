@@ -39,10 +39,13 @@ final class ProcessingSequenceBarrier implements SequenceBarrier
         this.cursorSequence = cursorSequence;
         if (0 == dependentSequences.length)
         {
+            //没有依赖sequencer， 只依赖生产者的序列号
             dependentSequence = cursorSequence;
         }
         else
         {
+            //存在依赖的sequencer，需要确保依赖的sequencer处理完，才能处理
+            //com.lmax.disruptor.WaitStrategy.waitFor
             dependentSequence = new FixedSequenceGroup(dependentSequences);
         }
     }

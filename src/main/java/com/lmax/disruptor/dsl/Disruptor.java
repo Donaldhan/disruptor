@@ -113,7 +113,7 @@ public class Disruptor<T>
     /**
      * <p>Set up event handlers to handle events from the ring buffer. These handlers will process events
      * as soon as they become available, in parallel.</p>
-     *
+     * 此方法，拥有处理器链的开始
      * <p>This method can be used as the start of a chain. For example if the handler <code>A</code> must
      * process events before handler <code>B</code>:</p>
      * <pre><code>dw.handleEventsWith(A).then(B);</code></pre>
@@ -350,16 +350,16 @@ public class Disruptor<T>
      *
      * <p>The ring buffer is set up to prevent overwriting any entry that is yet to
      * be processed by the slowest event processor.</p>
-     *
+     * @see com.lmax.disruptor.BatchEventProcessor.run
      * <p>This method must only be called once after all event processors have been added.</p>
-     *
+     * 只能调用一次
      * @return the configured ring buffer.
      */
     public RingBuffer<T> start()
     {
         checkOnlyStartedOnce();
+        //启动所有事件处理器
         consumerRepository.startAll(threadFactory);
-
         return ringBuffer;
     }
 
@@ -503,6 +503,14 @@ public class Disruptor<T>
         return started.get();
     }
 
+    /**
+     * <p>Creates event processors to handle events from the ring buffer. These handlers will process events
+     * as soon as they become available, in parallel.</p>
+     * @param barrierSequences 依赖的序列号
+     * @see com.lmax.disruptor.ProcessingSequenceBarrier#ProcessingSequenceBarrier(com.lmax.disruptor.Sequencer, com.lmax.disruptor.WaitStrategy, com.lmax.disruptor.Sequence, com.lmax.disruptor.Sequence[])
+     * @param eventHandlers
+     * @return
+     */
     EventHandlerGroup<T> createEventProcessors(
             final Sequence[] barrierSequences,
             final EventHandler<? super T>[] eventHandlers)
@@ -515,7 +523,7 @@ public class Disruptor<T>
         for (int i = 0, eventHandlersLength = eventHandlers.length; i < eventHandlersLength; i++)
         {
             final EventHandler<? super T> eventHandler = eventHandlers[i];
-
+            //创建批量消费事件处理器
             final BatchEventProcessor<T> batchEventProcessor =
                     new BatchEventProcessorBuilder().build(ringBuffer, barrier, eventHandler);
 
@@ -525,6 +533,7 @@ public class Disruptor<T>
             }
 
             consumerRepository.add(batchEventProcessor, eventHandler, barrier);
+            //维护消费者，消费的序列号
             processorSequences[i] = batchEventProcessor.getSequence();
         }
 
@@ -546,7 +555,7 @@ public class Disruptor<T>
         for (int i = 0, eventHandlersLength = eventHandlers.length; i < eventHandlersLength; i++)
         {
             final RewindableEventHandler<? super T> eventHandler = eventHandlers[i];
-
+            //create
             final BatchEventProcessor<T> batchEventProcessor =
                     new BatchEventProcessorBuilder().build(ringBuffer, barrier, eventHandler, batchRewindStrategy);
 
@@ -558,12 +567,18 @@ public class Disruptor<T>
             consumerRepository.add(batchEventProcessor, eventHandler, barrier);
             processorSequences[i] = batchEventProcessor.getSequence();
         }
-
+        //统一维护消费者的序列号
         updateGatingSequencesForNextInChain(barrierSequences, processorSequences);
 
         return new EventHandlerGroup<>(this, consumerRepository, processorSequences);
     }
 
+    /**
+     * <p>Updates the gating sequences for the next processor in the chain.</p>
+     * 统一维护消费者的序列号
+     * @param barrierSequences
+     * @param processorSequences
+     */
     private void updateGatingSequencesForNextInChain(final Sequence[] barrierSequences, final Sequence[] processorSequences)
     {
         if (processorSequences.length > 0)

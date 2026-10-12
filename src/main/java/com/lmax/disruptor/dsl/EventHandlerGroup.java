@@ -64,7 +64,7 @@ public class EventHandlerGroup<T>
 
     /**
      * Create a new event handler group that combines the handlers in this group with <code>processors</code>.
-     *
+     * 添加处理器到当前group
      * @param processors the processors to combine.
      * @return a new EventHandlerGroup combining the existing and new processors into a single dependency group.
      */
@@ -85,7 +85,9 @@ public class EventHandlerGroup<T>
     /**
      * <p>Set up batch handlers to consume events from the ring buffer. These handlers will only process events
      * after every {@link EventProcessor} in this group has processed the event.</p>
-     *
+     * 处理依赖链事件处理器
+     * @see Disruptor#createEventProcessors(com.lmax.disruptor.Sequence[], com.lmax.disruptor.EventHandler[])
+     * @see com.lmax.disruptor.ProcessingSequenceBarrier#ProcessingSequenceBarrier(com.lmax.disruptor.Sequencer, com.lmax.disruptor.WaitStrategy, com.lmax.disruptor.Sequence, com.lmax.disruptor.Sequence[])
      * <p>This method is generally used as part of a chain. For example if the handler <code>A</code> must
      * process events before handler <code>B</code>:</p>
      *
@@ -139,7 +141,9 @@ public class EventHandlerGroup<T>
     /**
      * <p>Set up batch handlers to handle events from the ring buffer. These handlers will only process events
      * after every {@link EventProcessor} in this group has processed the event.</p>
-     *
+     *  处理依赖链事件处理器
+     *  @see Disruptor#createEventProcessors(com.lmax.disruptor.Sequence[], com.lmax.disruptor.EventHandler[])
+     *  @see com.lmax.disruptor.ProcessingSequenceBarrier#ProcessingSequenceBarrier(com.lmax.disruptor.Sequencer, com.lmax.disruptor.WaitStrategy, com.lmax.disruptor.Sequence, com.lmax.disruptor.Sequence[])
      * <p>This method is generally used as part of a chain. For example if <code>A</code> must
      * process events before <code>B</code>:</p>
      *
